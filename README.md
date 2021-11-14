@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'jooq.demo.com' is invalid and this project uses 'jooq.demo.com.demojooq' instead.
+* The original package name 'jooq.demo.com' is invalid and this project uses 'jooq.demo.com' instead.
 
 # Getting Started
 
