@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'jooq.demo.com.demo-jooq' is invalid and this project uses 'jooq.demo.com.demojooq' instead.
+* The original package name 'jooq.demo.com' is invalid and this project uses 'jooq.demo.com.demojooq' instead.
 
 # Getting Started
 
@@ -45,7 +45,7 @@ INSERT INTO masters.accounts (username,"password",email,created_on,last_login) V
 ```
 ## Running the application locally
 
-There are several ways to run a Spring Boot application on your local machine. One way is to execute the `main` method in the `jooq.demo.com.demojooq.DemoJooqApplication` class from your IDE.
+There are several ways to run a Spring Boot application on your local machine. One way is to execute the `main` method in the `jooq.demo.com.DemoJooqApplication` class from your IDE.
 
 Alternatively you can use the [Spring Boot Maven plugin](https://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html) like so:
 
