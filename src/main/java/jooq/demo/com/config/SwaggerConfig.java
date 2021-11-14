@@ -1,4 +1,4 @@
-package jooq.demo.com.demojooq.config;
+package jooq.demo.com.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

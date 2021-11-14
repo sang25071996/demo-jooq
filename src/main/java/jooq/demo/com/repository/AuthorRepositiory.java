@@ -1,8 +1,8 @@
-package jooq.demo.com.demojooq.repository;
+package jooq.demo.com.repository;
 
-import static jooq.demo.com.demojooq.Tables.AUTHOR;
-import static jooq.demo.com.demojooq.Tables.AUTHOR_BOOK;
-import static jooq.demo.com.demojooq.Tables.BOOK;
+import static jooq.demo.com.Tables.AUTHOR;
+import static jooq.demo.com.Tables.AUTHOR_BOOK;
+import static jooq.demo.com.Tables.BOOK;
 import static org.jooq.impl.DSL.trueCondition;
 
 import java.lang.reflect.Field;
@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import jooq.demo.com.demojooq.dto.BookAuthorDto;
-import jooq.demo.com.demojooq.entites.Author;
-import jooq.demo.com.demojooq.request.Pagination;
+import jooq.demo.com.dto.BookAuthorDto;
+import jooq.demo.com.entites.Author;
+import jooq.demo.com.request.Pagination;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;

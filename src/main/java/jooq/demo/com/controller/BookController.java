@@ -1,7 +1,7 @@
-package jooq.demo.com.demojooq.controller;
+package jooq.demo.com.controller;
 
-import jooq.demo.com.demojooq.dto.BookAuthorDto;
-import jooq.demo.com.demojooq.service.BookService;
+import jooq.demo.com.dto.BookAuthorDto;
+import jooq.demo.com.service.BookService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

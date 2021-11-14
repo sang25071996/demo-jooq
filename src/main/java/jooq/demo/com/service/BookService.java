@@ -1,7 +1,7 @@
-package jooq.demo.com.demojooq.service;
+package jooq.demo.com.service;
 
-import jooq.demo.com.demojooq.dto.BookAuthorDto;
-import jooq.demo.com.demojooq.repository.BookRepository;
+import jooq.demo.com.dto.BookAuthorDto;
+import jooq.demo.com.repository.BookRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

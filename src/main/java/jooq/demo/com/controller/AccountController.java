@@ -1,7 +1,7 @@
-package jooq.demo.com.demojooq.controller;
+package jooq.demo.com.controller;
 
-import jooq.demo.com.demojooq.entites.Account;
-import jooq.demo.com.demojooq.service.AccountService;
+import jooq.demo.com.entites.Account;
+import jooq.demo.com.service.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

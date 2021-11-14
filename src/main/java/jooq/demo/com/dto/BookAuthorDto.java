@@ -1,4 +1,4 @@
-package jooq.demo.com.demojooq.dto;
+package jooq.demo.com.dto;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package jooq.demo.com.demojooq.entites;
+package jooq.demo.com.entites;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

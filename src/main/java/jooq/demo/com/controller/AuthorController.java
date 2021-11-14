@@ -1,9 +1,9 @@
-package jooq.demo.com.demojooq.controller;
+package jooq.demo.com.controller;
 
-import jooq.demo.com.demojooq.dto.BookAuthorDto;
-import jooq.demo.com.demojooq.entites.Author;
-import jooq.demo.com.demojooq.request.Pagination;
-import jooq.demo.com.demojooq.service.AuthorService;
+import jooq.demo.com.dto.BookAuthorDto;
+import jooq.demo.com.entites.Author;
+import jooq.demo.com.request.Pagination;
+import jooq.demo.com.service.AuthorService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

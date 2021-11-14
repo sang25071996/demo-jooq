@@ -1,4 +1,4 @@
-package jooq.demo.com.demojooq.entites;
+package jooq.demo.com.entites;
 
 import lombok.Getter;
 import lombok.Setter;

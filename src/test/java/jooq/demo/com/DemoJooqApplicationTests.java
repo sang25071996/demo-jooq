@@ -1,4 +1,4 @@
-package jooq.demo.com.demojooq;
+package jooq.demo.com;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

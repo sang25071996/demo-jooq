@@ -1,9 +1,9 @@
-package jooq.demo.com.demojooq.service;
+package jooq.demo.com.service;
 
-import jooq.demo.com.demojooq.dto.BookAuthorDto;
-import jooq.demo.com.demojooq.entites.Author;
-import jooq.demo.com.demojooq.repository.AuthorRepositiory;
-import jooq.demo.com.demojooq.request.Pagination;
+import jooq.demo.com.dto.BookAuthorDto;
+import jooq.demo.com.entites.Author;
+import jooq.demo.com.repository.AuthorRepositiory;
+import jooq.demo.com.request.Pagination;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 

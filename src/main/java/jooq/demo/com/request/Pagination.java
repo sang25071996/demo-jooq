@@ -1,4 +1,4 @@
-package jooq.demo.com.demojooq.request;
+package jooq.demo.com.request;
 
 import lombok.Getter;
 import lombok.Setter;
