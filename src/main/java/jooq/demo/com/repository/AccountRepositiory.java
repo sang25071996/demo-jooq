@@ -1,12 +1,12 @@
 package jooq.demo.com.repository;
 
-import static jooq.demo.com.Tables.ACCOUNTS;
-
-import java.util.List;
+import jooq.demo.com.Tables;
 import jooq.demo.com.entites.Account;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public class AccountRepositiory {
@@ -15,6 +15,7 @@ public class AccountRepositiory {
     private DSLContext dslContext;
 
     public List<Account> getAccounts() {
-        return dslContext.selectFrom(ACCOUNTS).fetchInto(Account.class);
+        List<Account> queryResults = dslContext.selectFrom(Tables.ACCOUNTS).fetchInto(Account.class);
+        return queryResults;
     }
 }

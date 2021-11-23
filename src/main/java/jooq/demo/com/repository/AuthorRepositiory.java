@@ -1,139 +1,89 @@
 package jooq.demo.com.repository;
 
-import static jooq.demo.com.Tables.AUTHOR;
-import static jooq.demo.com.Tables.AUTHOR_BOOK;
-import static jooq.demo.com.Tables.BOOK;
 import static org.jooq.impl.DSL.trueCondition;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import jooq.demo.com.Tables;
 import jooq.demo.com.dto.BookAuthorDto;
 import jooq.demo.com.entites.Author;
+import jooq.demo.com.execute.PaginationExecutor;
+import jooq.demo.com.execute.PaginationExecutorCommand;
+import jooq.demo.com.execute.query.AbstractQueryExecutor;
 import jooq.demo.com.request.Pagination;
+import jooq.demo.com.tables.Book;
+import jooq.demo.com.tables.records.AuthorRecord;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.SortField;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
-import org.jooq.TableField;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Slf4j
-public class AuthorRepositiory {
+public class AuthorRepositiory extends AbstractQueryExecutor {
 
-    private final DSLContext dslContext;
+  private PaginationExecutor paginationExecutor;
+  public AuthorRepositiory(DSLContext dslContext) {
+    super(dslContext);
+    paginationExecutor = new PaginationExecutorCommand(dslContext);
+  }
 
-    public AuthorRepositiory(DSLContext dslContext) {
-        this.dslContext = dslContext;
+  public Author findById(int id) {
+    Author author = dslContext.selectFrom(Tables.AUTHOR).where(Tables.AUTHOR.ID.equal(id))
+        .fetchOneInto(Author.class);
+    return author;
+  }
+
+  @SuppressWarnings("rawtypes")
+  public Page pagination(Pagination<BookAuthorDto> pagination) {
+    Map<Table, Table> tableMap = new HashMap<>();
+    tableMap.put(Tables.AUTHOR, Tables.AUTHOR);
+    tableMap.put(Book.BOOK, Book.BOOK);
+    this.paginationExecutor = this.paginationExecutor
+        .size(pagination.getSize()).page(pagination.getPage()).sort(pagination.getSortField())
+        .direction(pagination.getDirection()).execute(tableMap);
+    SelectConditionStep<?> query = dslContext.select(Tables.AUTHOR.ID, Tables.AUTHOR.FIRST_NAME,
+            Tables.AUTHOR.LAST_NAME, Book.BOOK.TITLE).from(
+            Tables.AUTHOR)
+        .innerJoin(Tables.AUTHOR_BOOK).on(Tables.AUTHOR.ID.eq(Tables.AUTHOR_BOOK.AUTHOR_ID))
+        .innerJoin(Book.BOOK).on(Tables.AUTHOR_BOOK.BOOK_ID.eq(Book.BOOK.ID))
+        .where(condition(pagination.getModel()));
+    return this.paginationExecutor.pagination(query, BookAuthorDto.class);
+  }
+
+  protected Condition condition(BookAuthorDto author) {
+    Condition condition = trueCondition();
+    if (StringUtils.isNotEmpty(author.getFirstName())) {
+      condition = condition.and(
+          Tables.AUTHOR.FIRST_NAME.likeIgnoreCase("%" + author.getFirstName() + "%"));
     }
-
-    public Author findById(int id) {
-        return dslContext.selectFrom(AUTHOR).where(AUTHOR.ID.equal(id)).fetchOneInto(Author.class);
+    if (StringUtils.isNotEmpty(author.getLastName())) {
+      condition = condition.and(
+          Tables.AUTHOR.LAST_NAME.likeIgnoreCase("%" + author.getLastName() + "%"));
     }
-
-    @SuppressWarnings("rawtypes")
-    public Page pagination(Pagination<BookAuthorDto> pagination) {
-        int size = pagination.getSize();
-        int page = pagination.getPage();
-        Sort sort = null;
-        Pageable pageable;
-        if (ObjectUtils.isEmpty(pagination.getSortField())) {
-            sort = null;
-            pageable = PageRequest.of(page, size);
-        } else {
-            sort = Sort.by(pagination.getDirection(), pagination.getSortField().toUpperCase());
-            pageable = PageRequest.of(page, size, sort);
-        }
-
-        long offset = pageable.getOffset();
-        Collection<SortField<?>> sortFields = sortField(sort);
-        List<BookAuthorDto> authors = dslContext.select(AUTHOR.ID, AUTHOR.FIRST_NAME, AUTHOR.LAST_NAME, BOOK.TITLE).from(AUTHOR)
-                .innerJoin(AUTHOR_BOOK).on(AUTHOR.ID.eq(AUTHOR_BOOK.AUTHOR_ID))
-                .innerJoin(BOOK).on(AUTHOR_BOOK.BOOK_ID.eq(BOOK.ID))
-                .where(condition(pagination.getModel()))
-                .orderBy(sortFields)
-                .limit(size).offset(offset).fetchInto(BookAuthorDto.class);
-        long total = dslContext.fetchCount(dslContext.select(AUTHOR.ID, AUTHOR.FIRST_NAME, AUTHOR.LAST_NAME, BOOK.TITLE).from(AUTHOR)
-                .innerJoin(AUTHOR_BOOK).on(AUTHOR.ID.eq(AUTHOR_BOOK.AUTHOR_ID))
-                .innerJoin(BOOK).on(AUTHOR_BOOK.BOOK_ID.eq(BOOK.ID))
-                .where(condition(pagination.getModel())));
-        return new PageImpl(authors, pageable, total);
+    if (StringUtils.isNotEmpty(author.getTitle())) {
+      condition = condition.and(Book.BOOK.TITLE.likeIgnoreCase("%" + author.getTitle() + "%"));
     }
+    return condition;
+  }
 
-    protected Condition condition(BookAuthorDto author) {
-        Condition condition = trueCondition();
-        if (StringUtils.isNotEmpty(author.getFirstName())) {
-            condition = condition.and(AUTHOR.FIRST_NAME.likeIgnoreCase("%" + author.getFirstName() + "%"));
-        }
-        if (StringUtils.isNotEmpty(author.getLastName())) {
-            condition = condition.and(AUTHOR.LAST_NAME.likeIgnoreCase("%" + author.getLastName() + "%"));
-        }
-        if (StringUtils.isNotEmpty(author.getTitle())) {
-            condition = condition.and(BOOK.TITLE.likeIgnoreCase("%" + author.getTitle() + "%"));
-        }
-        return condition;
+  @Transactional
+  public int insert(List<Author> authors) {
+    List<AuthorRecord> tableRecords = new ArrayList<>();
+
+    for (Author author : authors) {
+      AuthorRecord authorRecord = new AuthorRecord();
+      authorRecord.setFirstName(author.getFirstName());
+      authorRecord.setLastName(author.getLastName());
+      tableRecords.add(authorRecord);
     }
-
-    protected Collection<SortField<?>> sortField(Sort sort) {
-        Collection<SortField<?>> sortFields = new ArrayList<>();
-        if (sort == null) {
-            return sortFields;
-        }
-        Iterator<Sort.Order> iterator = sort.iterator();
-        try {
-            while(iterator.hasNext()) {
-                Sort.Order order = iterator.next();
-                String fieldName = order.getProperty();
-                Sort.Direction direction = order.getDirection();
-
-                Map<Table, Table> map = new HashMap<>();
-                map.put(AUTHOR, AUTHOR);
-                map.put(BOOK, BOOK);
-                for (Map.Entry<Table, Table> entry : map.entrySet()) {
-                    Table table = entry.getKey();
-                    SortField<?> sortField = getSortField(fieldName, table, direction);
-                    if (ObjectUtils.isNotEmpty(sortField)) {
-                        sortFields.add(sortField);
-                    }
-                }
-            }
-        } catch(Exception ex) {
-            log.error("Error get sort field: {}", ex.getMessage());
-        }
-
-        return sortFields;
-    }
-
-    private SortField<?> getSortField(String fieldName, Table table, Sort.Direction direction) {
-        TableField tableField;
-        SortField<?> sortField = null;
-        try {
-            Field field = table.getClass().getField(fieldName);
-            tableField = (TableField) field.get(table);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            tableField = null;
-        }
-        if (ObjectUtils.isNotEmpty(tableField)) {
-            if (direction == Sort.Direction.ASC) {
-                sortField = tableField.asc();
-            } else {
-                sortField = tableField.desc();
-            }
-        }
-        return sortField;
-    }
-
+    return insertBatch(tableRecords);
+  }
 }

@@ -1,13 +1,11 @@
 package jooq.demo.com.repository;
 
+import jooq.demo.com.Tables;
 import jooq.demo.com.dto.BookAuthorDto;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
-import static jooq.demo.com.Tables.AUTHOR;
-import static jooq.demo.com.Tables.BOOK;
 
 @Repository
 public class BookRepository {
@@ -20,10 +18,10 @@ public class BookRepository {
 
     public List<BookAuthorDto> getBookWithAuthor() {
 
-        List<BookAuthorDto> bookAuthors = dslContext.select(BOOK.ID,BOOK.TITLE, AUTHOR.FIRST_NAME, AUTHOR.LAST_NAME)
-                .from(AUTHOR)
-                .join(BOOK)
-                .on(BOOK.ID.eq(AUTHOR.ID))
+        List<BookAuthorDto> bookAuthors = dslContext.select(Tables.BOOK.ID, Tables.BOOK.TITLE, Tables.AUTHOR.FIRST_NAME, Tables.AUTHOR.LAST_NAME)
+                .from(Tables.AUTHOR)
+                .join(Tables.BOOK)
+                .on(Tables.BOOK.ID.eq(Tables.AUTHOR.ID))
                 .fetch().into(BookAuthorDto.class);
         return bookAuthors;
     }
