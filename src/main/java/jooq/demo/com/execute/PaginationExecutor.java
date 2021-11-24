@@ -1,8 +1,6 @@
 package jooq.demo.com.execute;
 
-import java.util.Map;
 import org.jooq.SelectConditionStep;
-import org.jooq.Table;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
@@ -20,8 +18,7 @@ public interface PaginationExecutor {
 
   PaginationExecutor direction(Sort.Direction direction);
 
-  @SuppressWarnings("rawtypes")
-  PaginationExecutor execute(Map<Table, Table> map);
+  PaginationExecutor execute();
 
   int size();
 

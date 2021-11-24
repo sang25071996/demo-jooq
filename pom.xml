@@ -110,7 +110,7 @@
 									<inputSchema>masters</inputSchema>
 								</database>
 								<target>
-									<packageName>jooq.demo.com.demojooq</packageName>
+									<packageName>jooq.demo.com</packageName>
 									<directory>target/generated-sources/jooq</directory>
 								</target>
 							</generator>

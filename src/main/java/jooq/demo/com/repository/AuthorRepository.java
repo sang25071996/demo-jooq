@@ -11,6 +11,7 @@ import jooq.demo.com.dto.BookAuthorDto;
 import jooq.demo.com.entites.Author;
 import jooq.demo.com.execute.PaginationExecutor;
 import jooq.demo.com.execute.PaginationExecutorCommand;
+import jooq.demo.com.execute.PaginationSettings;
 import jooq.demo.com.execute.query.AbstractQueryExecutor;
 import jooq.demo.com.request.Pagination;
 import jooq.demo.com.tables.Book;
@@ -27,12 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Slf4j
-public class AuthorRepositiory extends AbstractQueryExecutor {
+public class AuthorRepository extends AbstractQueryExecutor {
 
   private PaginationExecutor paginationExecutor;
-  public AuthorRepositiory(DSLContext dslContext) {
+  public AuthorRepository(DSLContext dslContext) {
     super(dslContext);
-    paginationExecutor = new PaginationExecutorCommand(dslContext);
+    paginationExecutor = new PaginationExecutorCommand(dslContext, paginationSettings());
   }
 
   public Author findById(int id) {
@@ -43,19 +44,16 @@ public class AuthorRepositiory extends AbstractQueryExecutor {
 
   @SuppressWarnings("rawtypes")
   public Page pagination(Pagination<BookAuthorDto> pagination) {
-    Map<Table, Table> tableMap = new HashMap<>();
-    tableMap.put(Tables.AUTHOR, Tables.AUTHOR);
-    tableMap.put(Book.BOOK, Book.BOOK);
-    this.paginationExecutor = this.paginationExecutor
+    PaginationExecutor paginateExecutor = this.paginationExecutor
         .size(pagination.getSize()).page(pagination.getPage()).sort(pagination.getSortField())
-        .direction(pagination.getDirection()).execute(tableMap);
+        .direction(pagination.getDirection()).execute();
     SelectConditionStep<?> query = dslContext.select(Tables.AUTHOR.ID, Tables.AUTHOR.FIRST_NAME,
             Tables.AUTHOR.LAST_NAME, Book.BOOK.TITLE).from(
             Tables.AUTHOR)
         .innerJoin(Tables.AUTHOR_BOOK).on(Tables.AUTHOR.ID.eq(Tables.AUTHOR_BOOK.AUTHOR_ID))
         .innerJoin(Book.BOOK).on(Tables.AUTHOR_BOOK.BOOK_ID.eq(Book.BOOK.ID))
         .where(condition(pagination.getModel()));
-    return this.paginationExecutor.pagination(query, BookAuthorDto.class);
+    return paginateExecutor.pagination(query, BookAuthorDto.class);
   }
 
   protected Condition condition(BookAuthorDto author) {
@@ -84,6 +82,30 @@ public class AuthorRepositiory extends AbstractQueryExecutor {
       authorRecord.setLastName(author.getLastName());
       tableRecords.add(authorRecord);
     }
-    return insertBatch(tableRecords);
+    return batchInsert(tableRecords);
+  }
+
+  @Transactional
+  public int update(List<Author> authors) {
+    List<AuthorRecord> tableRecords = new ArrayList<>();
+
+    for (Author author : authors) {
+      AuthorRecord authorRecord = new AuthorRecord();
+      authorRecord.setId(author.getId());
+      authorRecord.setFirstName(author.getFirstName());
+      authorRecord.setLastName(author.getLastName());
+      tableRecords.add(authorRecord);
+    }
+    return batchUpdate(tableRecords);
+  }
+
+  private PaginationSettings paginationSettings() {
+    PaginationSettings paginationSettings = new PaginationSettings();
+    paginationSettings.setRenderSortDefault(false);
+    Map<Table, Table> tableMap = new HashMap<>();
+    tableMap.put(Tables.AUTHOR, Tables.AUTHOR);
+    tableMap.put(Book.BOOK, Book.BOOK);
+    paginationSettings.setTableMapExtractor(tableMap);
+    return paginationSettings;
   }
 }

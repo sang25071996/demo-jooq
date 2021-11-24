@@ -3,7 +3,7 @@ package jooq.demo.com.service;
 import java.util.List;
 import jooq.demo.com.dto.BookAuthorDto;
 import jooq.demo.com.entites.Author;
-import jooq.demo.com.repository.AuthorRepositiory;
+import jooq.demo.com.repository.AuthorRepository;
 import jooq.demo.com.request.Pagination;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthorService {
 
-  private final AuthorRepositiory authorRepositiory;
+  private final AuthorRepository authorRepositiory;
 
-  public AuthorService(AuthorRepositiory authorRepositiory) {
+  public AuthorService(AuthorRepository authorRepositiory) {
     this.authorRepositiory = authorRepositiory;
   }
 
@@ -30,5 +30,10 @@ public class AuthorService {
   @Transactional
   public int insert(List<Author> authors) {
     return this.authorRepositiory.insert(authors);
+  }
+
+  @Transactional
+  public int update(List<Author> authors) {
+    return this.authorRepositiory.update(authors);
   }
 }

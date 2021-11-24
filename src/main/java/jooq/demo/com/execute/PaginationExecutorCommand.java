@@ -3,13 +3,15 @@ package jooq.demo.com.execute;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import jooq.demo.com.execute.query.AbstractQueryExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
+import org.jooq.ResultQuery;
 import org.jooq.SelectConditionStep;
 import org.jooq.SortField;
 import org.jooq.Table;
@@ -18,21 +20,26 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 
 @Slf4j
-public class PaginationExecutorCommand implements PaginationExecutor {
+public class PaginationExecutorCommand extends AbstractQueryExecutor implements PaginationExecutor {
 
-  private int size;
-  private int page;
-  private String sortField;
-  private Sort.Direction direction;
-  private PageRequest pageRequest;
-  private Map<Table, Table> map = new HashMap<>();
-  private final DSLContext dslContext;
+  protected int size;
+  protected int page;
+  protected String sortField;
+  protected Sort.Direction direction;
+  protected PageRequest pageRequest;
+  protected PaginationSettings paginationSettings = new PaginationSettings();
 
   public PaginationExecutorCommand(DSLContext dslContext) {
-    this.dslContext = dslContext;
+    super(dslContext);
+  }
+
+  public PaginationExecutorCommand(DSLContext dslContext, PaginationSettings paginationSettings) {
+    super(dslContext);
+    this.paginationSettings = paginationSettings;
   }
 
   public PaginationExecutor size(int size) {
@@ -63,20 +70,33 @@ public class PaginationExecutorCommand implements PaginationExecutor {
    * @return Page
    */
   @Override
-  public Page pagination(SelectConditionStep<?> selectConditionStep,
-      Class<?> clazz) {
-    Collection<SortField<?>> sortFields = sortField(sort(), this.map);
-    List<?> list = selectConditionStep.orderBy(sortFields).limit(size()).offset(offset())
-        .fetchInto(clazz);
+  public Page pagination(SelectConditionStep<?> selectConditionStep, Class<?> clazz) {
+    List<?> list;
+    if (StringUtils.isEmpty(sortField)) {
+      if (paginationSettings.isRenderSortDefault) {
+        this.pageRequest = PageRequest.of(page, size,
+            Sort.by(Direction.ASC, paginationSettings.getSortFieldDefault().toUpperCase()));
+        Collection<SortField<?>> sortFields = sortField(sort());
+        ResultQuery<?> query = selectConditionStep.orderBy(sortFields).limit(size())
+            .offset(offset());
+        list = fetchInto(query, clazz);
+      } else {
+        ResultQuery<?> query = selectConditionStep.limit(size()).offset(offset());
+        list = fetchInto(query, clazz);
+      }
+    } else {
+      Collection<SortField<?>> sortFields = sortField(sort());
+      ResultQuery<?> query = selectConditionStep.orderBy(sortFields).limit(size()).offset(offset());
+      list = fetchInto(query, clazz);
+    }
     long count = dslContext.fetchCount(selectConditionStep);
     return new PageImpl(list, this.pageRequest, count);
   }
 
   @Override
-  public PaginationExecutor execute(Map<Table, Table> map) {
+  public PaginationExecutor execute() {
     this.pageRequest = ObjectUtils.isEmpty(sortField) ? PageRequest.of(page, size)
         : PageRequest.of(page, size, Sort.by(direction, sortField.toUpperCase()));
-    this.map = map;
     return this;
   }
 
@@ -95,7 +115,7 @@ public class PaginationExecutorCommand implements PaginationExecutor {
     return this.pageRequest.getSort();
   }
 
-  protected Collection<SortField<?>> sortField(Sort sort, Map<Table, Table> map) {
+  protected Collection<SortField<?>> sortField(Sort sort) {
     Collection<SortField<?>> sortFields = new ArrayList<>();
     if (sort == null) {
       return sortFields;
@@ -107,7 +127,8 @@ public class PaginationExecutorCommand implements PaginationExecutor {
         String fieldName = order.getProperty();
         Sort.Direction direction = order.getDirection();
 
-        for (Map.Entry<Table, Table> entry : map.entrySet()) {
+        for (Map.Entry<Table, Table> entry : this.paginationSettings.getTableMapExtractor()
+            .entrySet()) {
           Table table = entry.getKey();
           SortField<?> sortField = getSortField(fieldName, table, direction);
           if (ObjectUtils.isNotEmpty(sortField)) {

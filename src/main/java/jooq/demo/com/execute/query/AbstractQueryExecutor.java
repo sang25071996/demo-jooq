@@ -4,12 +4,14 @@ import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Batch;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
 import org.jooq.ResultQuery;
+import org.jooq.Table;
 import org.jooq.TableRecord;
 import org.jooq.UpdatableRecord;
 import org.springframework.util.Assert;
@@ -40,17 +42,39 @@ public abstract class AbstractQueryExecutor implements QueryExecutor {
   }
 
   @Override
-  public int insertBatch(Collection<? extends TableRecord<?>> records) {
+  public int batchInsert(Collection<? extends TableRecord<?>> records) {
     Batch batch = dslContext.batchInsert(records);
     batch.execute();
     return batch.size();
   }
 
   @Override
-  public int updateBatch(Collection<? extends UpdatableRecord<?>> records) {
+  public <R extends Record> R insert(Table<?> table, Record record) {
+    return (R) dslContext.insertInto(table).set(record).returning().fetchOne();
+  }
+
+  @Override
+  public void insert(Table<?> table, Collection<? extends TableRecord<?>> records) {
+    for (Record record : records) {
+      dslContext.insertInto(table).set(record).returning().fetchOne();
+    }
+  }
+
+  @Override
+  public int update(TableRecord<?> tableRecord, Condition condition) {
+    return dslContext.executeUpdate(tableRecord, condition);
+  }
+
+  @Override
+  public int batchUpdate(Collection<? extends UpdatableRecord<?>> records) {
     Batch batch = dslContext.batchUpdate(records);
     batch.execute();
-    return  batch.size();
+    return batch.size();
+  }
+
+  @Override
+  public int update(UpdatableRecord<?> updatableRecord) {
+    return dslContext.executeUpdate(updatableRecord);
   }
 
   @Override
