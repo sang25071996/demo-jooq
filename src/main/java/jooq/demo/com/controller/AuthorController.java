@@ -30,9 +30,15 @@ public class AuthorController {
     return ResponseEntity.ok().body(this.authorService.findById(id));
   }
 
+  @GetMapping()
+  public ResponseEntity<List<Author>> getAuthors() {
+    return ResponseEntity.ok().body(this.authorService.getAuthors());
+  }
+
   @SuppressWarnings("rawtypes")
   @PostMapping("/pagination")
-  public ResponseEntity<Page> pagination(@RequestBody Pagination<BookAuthorDto> pagination) {
+  public ResponseEntity<Page> pagination(@RequestBody Pagination<BookAuthorDto> pagination)
+      throws Exception {
     return ResponseEntity.ok().body(this.authorService.pagination(pagination));
   }
 

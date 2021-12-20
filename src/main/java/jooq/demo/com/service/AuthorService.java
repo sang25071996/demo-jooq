@@ -22,14 +22,18 @@ public class AuthorService {
     return this.authorRepositiory.findById(id);
   }
 
+  public List<Author> getAuthors() {
+    return this.authorRepositiory.getAuthors();
+  }
+
   @SuppressWarnings("rawtypes")
-  public Page pagination(Pagination<BookAuthorDto> pagination) {
+  public Page pagination(Pagination<BookAuthorDto> pagination) throws Exception {
     return this.authorRepositiory.pagination(pagination);
   }
 
   @Transactional
   public int insert(List<Author> authors) {
-    return this.authorRepositiory.insert(authors);
+    return this.authorRepositiory.insertAuthor(authors);
   }
 
   @Transactional

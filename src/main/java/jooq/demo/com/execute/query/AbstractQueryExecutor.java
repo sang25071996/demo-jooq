@@ -2,7 +2,6 @@ package jooq.demo.com.execute.query;
 
 import java.util.Collection;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.jooq.Batch;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -16,7 +15,6 @@ import org.jooq.TableRecord;
 import org.jooq.UpdatableRecord;
 import org.springframework.util.Assert;
 
-@Slf4j
 public abstract class AbstractQueryExecutor implements QueryExecutor {
 
   protected final DSLContext dslContext;

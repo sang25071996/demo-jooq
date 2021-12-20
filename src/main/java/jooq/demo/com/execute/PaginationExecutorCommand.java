@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import jooq.demo.com.execute.query.AbstractQueryExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -22,6 +23,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.util.Assert;
 
 @Slf4j
 public class PaginationExecutorCommand extends AbstractQueryExecutor implements PaginationExecutor {
@@ -42,16 +46,19 @@ public class PaginationExecutorCommand extends AbstractQueryExecutor implements 
     this.paginationSettings = paginationSettings;
   }
 
+  @Override
   public PaginationExecutor size(int size) {
     this.size = size;
     return this;
   }
 
+  @Override
   public PaginationExecutor page(int page) {
     this.page = page;
     return this;
   }
 
+  @Override
   public PaginationExecutor sort(String sortField) {
     if (ObjectUtils.isNotEmpty(sortField)) {
       this.sortField = sortField;
@@ -59,8 +66,16 @@ public class PaginationExecutorCommand extends AbstractQueryExecutor implements 
     return this;
   }
 
+  @Override
   public PaginationExecutor direction(Sort.Direction direction) {
     this.direction = direction;
+    return this;
+  }
+
+  @Override
+  public PaginationExecutor execute() {
+    this.pageRequest = ObjectUtils.isEmpty(sortField) ? PageRequest.of(page, size)
+        : PageRequest.of(page, size, Sort.by(direction, sortField.toUpperCase()));
     return this;
   }
 
@@ -70,10 +85,11 @@ public class PaginationExecutorCommand extends AbstractQueryExecutor implements 
    * @return Page
    */
   @Override
-  public Page pagination(SelectConditionStep<?> selectConditionStep, Class<?> clazz) {
+  public Page pagination(SelectConditionStep<?> selectConditionStep, Class<?> clazz) throws Exception {
     List<?> list;
     if (StringUtils.isEmpty(sortField)) {
       if (paginationSettings.isRenderSortDefault) {
+        Assert.hasLength(paginationSettings.getSortFieldDefault(), "Sort field default not empty");
         this.pageRequest = PageRequest.of(page, size,
             Sort.by(Direction.ASC, paginationSettings.getSortFieldDefault().toUpperCase()));
         Collection<SortField<?>> sortFields = sortField(sort());
@@ -89,15 +105,13 @@ public class PaginationExecutorCommand extends AbstractQueryExecutor implements 
       ResultQuery<?> query = selectConditionStep.orderBy(sortFields).limit(size()).offset(offset());
       list = fetchInto(query, clazz);
     }
-    long count = dslContext.fetchCount(selectConditionStep);
+    long count = countPaginate(selectConditionStep).get();
     return new PageImpl(list, this.pageRequest, count);
   }
 
-  @Override
-  public PaginationExecutor execute() {
-    this.pageRequest = ObjectUtils.isEmpty(sortField) ? PageRequest.of(page, size)
-        : PageRequest.of(page, size, Sort.by(direction, sortField.toUpperCase()));
-    return this;
+  @Async
+  public Future<Integer> countPaginate(SelectConditionStep<?> selectConditionStep) {
+    return new AsyncResult<>(dslContext.fetchCount(selectConditionStep));
   }
 
   @Override

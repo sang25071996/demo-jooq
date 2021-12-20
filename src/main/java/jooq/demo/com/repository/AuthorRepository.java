@@ -13,6 +13,9 @@ import jooq.demo.com.execute.PaginationExecutor;
 import jooq.demo.com.execute.PaginationExecutorCommand;
 import jooq.demo.com.execute.PaginationSettings;
 import jooq.demo.com.execute.query.AbstractQueryExecutor;
+import jooq.demo.com.filter.AuthorFilter;
+import jooq.demo.com.filter.AuthorFilterBuilder;
+import jooq.demo.com.filter.FilterStrategyBuilder;
 import jooq.demo.com.request.Pagination;
 import jooq.demo.com.tables.Book;
 import jooq.demo.com.tables.records.AuthorRecord;
@@ -31,9 +34,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthorRepository extends AbstractQueryExecutor {
 
   private PaginationExecutor paginationExecutor;
+  private AuthorFilterBuilder authorFilterBuilder;
+  private FilterStrategyBuilder filterStrategyBuilder;
+
   public AuthorRepository(DSLContext dslContext) {
     super(dslContext);
     paginationExecutor = new PaginationExecutorCommand(dslContext, paginationSettings());
+    filterStrategyBuilder = new FilterStrategyBuilder();
   }
 
   public Author findById(int id) {
@@ -42,8 +49,24 @@ public class AuthorRepository extends AbstractQueryExecutor {
     return author;
   }
 
+  public List<Author> getAuthors() {
+    List<Author> authors = dslContext.selectFrom(Tables.AUTHOR).fetchInto(Author.class);
+    authorFilterBuilder = new AuthorFilterBuilder(authors);
+    List<Author> newAuthors = authorFilter();
+    return authors;
+  }
+
+  /**
+   * @return List<Author>
+   */
+  private List<Author> authorFilter() {
+    AuthorFilter authorFilter = authorFilterBuilder.firstName("author 5").lastName("author 5");
+    filterStrategyBuilder.setFilter(authorFilter);
+    return filterStrategyBuilder.filter();
+  }
+
   @SuppressWarnings("rawtypes")
-  public Page pagination(Pagination<BookAuthorDto> pagination) {
+  public Page pagination(Pagination<BookAuthorDto> pagination) throws Exception {
     PaginationExecutor paginateExecutor = this.paginationExecutor
         .size(pagination.getSize()).page(pagination.getPage()).sort(pagination.getSortField())
         .direction(pagination.getDirection()).execute();
@@ -73,10 +96,10 @@ public class AuthorRepository extends AbstractQueryExecutor {
   }
 
   @Transactional
-  public int insert(List<Author> authors) {
+  public int insertAuthor(List<Author> authors) {
     List<AuthorRecord> tableRecords = new ArrayList<>();
-
     for (Author author : authors) {
+
       AuthorRecord authorRecord = new AuthorRecord();
       authorRecord.setFirstName(author.getFirstName());
       authorRecord.setLastName(author.getLastName());

@@ -8,7 +8,7 @@ public interface PaginationExecutor {
 
   @SuppressWarnings("rawtypes")
   Page pagination(SelectConditionStep<?> resultQuery,
-      Class<?> clazz);
+      Class<?> clazz) throws Exception;
 
   PaginationExecutor size(int size);
 

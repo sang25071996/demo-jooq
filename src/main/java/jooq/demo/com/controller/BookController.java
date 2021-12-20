@@ -18,34 +18,40 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/books")
 public class BookController {
 
-    private final BookService bookService;
+  private final BookService bookService;
 
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
+  public BookController(BookService bookService) {
+    this.bookService = bookService;
+  }
 
-    @GetMapping
-    public ResponseEntity<List<BookAuthorDto>> getBookWithAuthor() {
-        return ResponseEntity.ok().body(this.bookService.getBookWithAuthor());
-    }
+  @GetMapping("/book-author")
+  public ResponseEntity<List<BookAuthorDto>> getBookWithAuthor() {
+    return ResponseEntity.ok().body(this.bookService.getBookWithAuthor());
+  }
 
-    @PostMapping("/pagination")
-    public ResponseEntity<Page> pagination(@RequestBody Pagination<Book> pagination) {
-        return ResponseEntity.ok().body(this.bookService.pagination(pagination));
-    }
+  @GetMapping()
+  public ResponseEntity<List<Book>> getBooks() {
+    return ResponseEntity.ok().body(this.bookService.getBooks());
+  }
 
-    @PostMapping("/batch")
-    public ResponseEntity<Boolean> insert(@RequestBody List<Book> books) {
-        return ResponseEntity.ok().body(this.bookService.insert(books));
-    }
+  @PostMapping("/pagination")
+  public ResponseEntity<Page> pagination(@RequestBody Pagination<Book> pagination)
+      throws Exception {
+    return ResponseEntity.ok().body(this.bookService.pagination(pagination));
+  }
 
-    @PostMapping
-    public ResponseEntity<Boolean> insert(@RequestBody Book book) {
-        return ResponseEntity.ok().body(this.bookService.insert(book));
-    }
+  @PostMapping("/batch")
+  public ResponseEntity<Boolean> insert(@RequestBody List<Book> books) {
+    return ResponseEntity.ok().body(this.bookService.insert(books));
+  }
 
-    @PutMapping
-    public ResponseEntity<Boolean> update(@RequestBody Book book) {
-        return ResponseEntity.ok().body(this.bookService.update(book));
-    }
+  @PostMapping
+  public ResponseEntity<Boolean> insert(@RequestBody Book book) {
+    return ResponseEntity.ok().body(this.bookService.insert(book));
+  }
+
+  @PutMapping
+  public ResponseEntity<Boolean> update(@RequestBody Book book) {
+    return ResponseEntity.ok().body(this.bookService.update(book));
+  }
 }
